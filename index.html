@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Aoide</title>
+    <link href="style/player.css" rel="stylesheet" type="text/css">
+    <link rel="icon" href="images/music.ico">
+</head>
+<body>
+<div id="player_container" class="no_opacity">
+    <!-- 警告层，预留 -->
+    <div id="player_container_warn" class="toggle_hidden"></div>
+    <!-- 提示层 -->
+    <div id="player_container_notice" class="toggle_hidden"><div></div></div>
+    <!-- 输入层 -->
+    <div id="player_container_input" class="toggle_hidden"><div><input type="text" /></div></div>
+    <!-- 遮罩层 -->
+    <div id="player_container_mask" class="toggle_hidden high_opacity"><div class="low_opacity"></div></div>
+    <div id="player_main">
+        <div id="player_main_display" class="unselectable" title="更换此媒体封面">
+            <img src="images/disk.png" alt="图片已失效"/>
+            <audio id="play_resource" preload="metadata" src=""></audio>
+            <input type="file" class="toggle_hidden" accept="image/*" onchange="changeMediaPictureSubmit(event);" />
+        </div>
+        <div id="player_main_info">
+            <div id="player_main_current">
+                <div id="player_main_current_title"></div>
+            </div>
+            <div id="player_controller">
+                <div id="player_controller_sound_sign" onclick="mute();"></div>
+                <div id="player_controller_sound_process">
+                    <div></div>
+                </div>
+                <div id="player_controller_previous" title="上一首" onclick="switchResources(false);"></div>
+                <div id="player_controller_switch" title="播放"></div>
+                <div id="player_controller_next" title="下一首" onclick="switchResources(true);"></div>
+                <div id="player_controller_speed" class="high_opacity unselectable"></div>
+                <div id="player_controller_order" class="high_opacity"></div>
+            </div>
+            <!--播放的时间数值展示-->
+            <div id="player_main_process">
+                <div id="player_main_process_current"></div>
+                <div id="player_main_process_total"></div>
+            </div>
+        </div>
+        <!--主界面的纵向分割线-->
+        <div class = "player_main_split"><div></div></div>
+        <div class = "player_main_setting">
+            <div id="player_setting_help" title="帮助" class="high_opacity" onclick="window.open('readme.html')"></div>
+            <div id="player_setting_in" title="下载配置" class="high_opacity"></div>
+            <div id="player_setting_out" title="上传配置" class="high_opacity">
+                <input type="file" onchange="submitSetting(event);" class="toggle_hidden" />
+            </div>
+        </div>
+        <!--主界面的纵向分割线-->
+        <div class = "player_main_split"><div></div></div>
+        <div class = "player_main_setting">
+            <div id="player_location" title="拖动" class="high_opacity"></div>
+            <div id="player_setting_color" class="high_opacity" onclick="changeColor();"></div>
+            <div id="player_store_switch" title="播放列表" class="high_opacity"></div>
+        </div>
+    </div>
+    <!--播放的进度条展示-->
+    <div id="player_process_outer" title="播放进度">
+        <div id="player_process_current"></div>
+    </div>
+    <div id="player_store_outer">
+        <!--播放单列表-->
+        <div id="player_group_outer">
+            <div id="player_group_wrapper">
+                <div id="player_group_default" class="player_group_single" onclick='choosePlayList(this);'>正在播放</div>
+            </div>
+            <div id="player_group_search" class="high_opacity" title="搜索此列表" onclick="searchPlayList();"></div>
+            <div id="player_group_add" class="high_opacity" title="播放此列表" onclick="appendPlayList();"></div>
+            <div id="player_group_create" class="high_opacity" title="新建列表" onclick="createPlayList();"></div>
+            <div id="player_group_rename" class="high_opacity" title="重命名列表" onclick="renamePlayListPrepare();"></div>
+            <div id="player_group_clear" class="high_opacity" title="清空列表" onclick="clearPlayList();"></div>
+            <div id="player_group_remove" class="high_opacity" title="删除列表" onclick="removePlayList();"></div>
+        </div>
+        <!--分割线-->
+        <div id="player_store_hr"></div>
+        <!--媒体详情列表-->
+        <div id="player_list_outer">
+            <!--滑动层-->
+            <div id="player_list_slide"></div>
+        </div>
+    </div>
+    <div id="player_container_switch">
+        <div></div>
+    </div>
+</div>
+</body>
+<!--此js为用于识别导入音乐文件内嵌图片的开源组件-->
+<script src="scripts/jsmediatags.min.js"></script>
+<script src="scripts/common.js"></script>
+<script src="scripts/dataModel.js"></script>
+<script src="scripts/store.js"></script>
+<script src="scripts/local.js"></script>
+<!--<script src="scripts/remote.js"></script>-->
+<script src="scripts/player.js"></script>
+</html>
