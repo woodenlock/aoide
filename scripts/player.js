@@ -894,7 +894,11 @@ function pickLocalMediaFile(event, prefix, maskId){
                 let fileName = files[i].name;
                 let ind = fileName ? fileName.lastIndexOf("."): -1;
                 fileName = ind === -1 ? fileName : fileName.substr(0, ind);
-                clock.set(new Media(null, fileName, parseInt(duration), false, url, picture ? STORE.get().setImg(generateImageId(), picture) : null), i);
+                let imgId = generateImageId();
+                if(picture){
+                    STORE.get().setImg(imgId, picture);
+                }
+                clock.set(new Media(null, fileName, parseInt(duration), false, url, picture ? imgId : null), i);
             });
         }, function (e){
             notice("本地媒体加载失败：" + paths[i], e);
