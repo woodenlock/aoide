@@ -53,9 +53,10 @@ let Media = function (index, name, duration, star, path, picture){
 }
 
 //媒体列表
-let PlayerList = function (name, medias) {
+let PlayerList = function (name, listHeight, medias) {
     this.index = null; //序号
     this.name = name || ""; //名称
+    this.listHeight = typeof listHeight === "number" ? listHeight : 240; //播放列表最大高度
     this.medias = []; //媒体集合
     if(medias && medias.length){
         for (let i = 0; i < medias.length; i++) {
@@ -279,8 +280,11 @@ let Setting = function (soundUp, soundPercent, order, speed, currentMediaIndex, 
     this.size = function (){
         return this.lists.length;
     }
+    this.getCurrentPlayList = function (){
+        return this.get(this.currentListIndex);
+    }
     this.getCurrentMedia = function (){
-        let pl = this.get(this.currentListIndex);
+        let pl = this.getCurrentPlayList();
         return pl ? pl.get(this.currentMediaIndex) : null;
     }
 }

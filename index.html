@@ -30,6 +30,7 @@
                 <div id="player_controller_sound_sign" onclick="mute();"></div>
                 <div id="player_controller_sound_process">
                     <div></div>
+                    <div></div>
                 </div>
                 <div id="player_controller_previous" title="上一首" onclick="switchResources(false);"></div>
                 <div id="player_controller_switch" title="播放"></div>
@@ -63,6 +64,7 @@
     <!--播放的进度条展示-->
     <div id="player_process_outer" title="播放进度">
         <div id="player_process_current"></div>
+        <div></div>
     </div>
     <div id="player_store_outer">
         <!--播放单列表-->
@@ -83,6 +85,14 @@
         <div id="player_list_outer">
             <!--滑动层-->
             <div id="player_list_slide"></div>
+        </div>
+        <!--添加媒体相关功能按钮-->
+        <div id="player_list_create" title="拖动以调整列表高度" class="high_opacity">
+            <div title="添加远程媒体"></div>
+            <div title="添加本地媒体"></div>
+            <div title="添加本地文件夹"></div>
+            <!--允许接受的文件类型，需要更多类型可继续补充-->
+            <input type="file" style="display: none" multiple="multiple" accept="video/*,audio/*,.rmvb,.flv,.ape" />
         </div>
     </div>
     <div id="player_container_switch">

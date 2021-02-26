@@ -37,7 +37,7 @@ const IS_IOS = !!navigator.userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/);
 /** 全局使用的配置，默认先从本地缓存中读取，没有再实例化一个空的 **/
 let setting = STORE.get().getSetting();
 if(!setting){
-    setting = new Setting(null, null, null, null, null, null, null, null, null, null, null, null, [new PlayerList("正在播放", [])]);
+    setting = new Setting(null, null, null, null, null, null, null, null, null, null, null, null, [new PlayerList("正在播放",null, [])]);
     //TODO 示例数据，请删除
     setting.get(0).add(new Media(null, "Libertango - Yo-Yo Ma",187, true,
         "http://music.163.com/song/media/outer/url?id=1699535.mp3", "http://p2.music.126.net/DArW5ONJzLHd4JKgIl7yzA==/705886465073370.jpg"));
@@ -68,10 +68,12 @@ let playerStoreSwitch = document.getElementById("player_store_switch");
 let processCurrent = document.getElementById("player_main_process_current");
 let soundController = document.getElementById("player_controller_sound_process");
 let processController = document.getElementById("player_process_outer");
+let currentProcess = document.getElementById("player_process_current");
 let mediaSingleContainer = document.getElementById("player_list_outer");
 let mediaSingleSlider = document.getElementById("player_list_slide");
 let playerListRename = document.getElementById("player_group_rename");
 let PlayerListWrapper = document.getElementById("player_group_wrapper");
+let createArea = document.getElementById(CREATE_AREA_ID);
 
 /* -------------------------------------- 功能性的DOM操作调用函数 --------------------------------------- */
 /* --------------- 全局DOM操作 --------------- */
@@ -166,6 +168,28 @@ function hideInput(maskId){
     let input = containerInput.children[0].children[0];
     input.onblur = input.onkeypress = null;
     hideMask(maskId);
+}
+
+/** 通用的元素的拖动操作绑定 **/
+function bindDrag (ele, start, process, end){
+    if(ele instanceof Element){
+        addHandler(ele, "mousedown", function (ev){
+            //防止拖动的时候误选中
+            fc.classList.add(UNSELECTABLE_CLASS);
+            let params;
+            if(typeof start === "function")params = start(ev);
+            if(typeof process === "function")document.onmousemove = function (eve) {
+                process(eve, params);
+            }
+            //拖动结束的触发绑定在document上以增加可靠性
+            document.onmouseout = document.onmouseup = function (eve) {
+                fc.classList.remove(UNSELECTABLE_CLASS);
+                if(typeof end === "function")end(eve);
+                document.onmousemove = document.onmouseout = document.onmouseup = null;
+            };
+            return false;
+        });
+    }
 }
 
 /* --------------- 主界面的DOM操作 --------------- */
@@ -310,7 +334,7 @@ function resetProcess(percent, reload){
                 playResource.currentTime = percent * playResource.duration;
             }
             //修改进度条元素的长度
-            processController.children[0].style.width = percent * 100 + "%";
+            currentProcess.style.width = percent * 100 + "%";
             //修改当前时间元素的文本
             processCurrent.innerHTML = calculateTime(playResource.currentTime);
             //如果当前播放结束自动切换到下一首
@@ -335,7 +359,7 @@ function changeColor(color){
     }
     //document.getElementById("player_main_split").children[0].style.backgroundColor = "#" + bleachColor(color.value, -0.6);
     processController.style.backgroundColor = "#" + bleachColor(color.value, -0.6);
-    processController.children[0].style.backgroundColor = "#" + bleachColor(color.value, 0.8);
+    currentProcess.style.backgroundColor = "#" + bleachColor(color.value, 0.8);
     soundController.style.backgroundColor = "#" + bleachColor(color.value, -0.6);
     soundController.children[0].style.backgroundColor = "#" + bleachColor(color.value, 0.8);
     document.getElementsByClassName(CHOSE_GROUP_CLASS)[0].style.backgroundColor = "#" + bleachColor(color.value, 0.4);
@@ -444,8 +468,9 @@ function choosePlayList(element){
     if(playList.size() !== 0){
         findDirectChildByClassName(mediaSingleSlider.children[0], SINGLE_MEDIA_TITLE_CLASS).click();
     }
-    //重构列表界面
-    restructureMediaList();
+    setting.currentListIndex = index;
+    STORE.get().setSetting(setting);
+    calculateListSliderHeight();
     return false;
 }
 
@@ -503,7 +528,7 @@ function clearPlayList(index){
     //清空媒体详情列表的内容
     mediaSingleSlider.innerHTML = "";
     mediaSingleSlider.style.marginTop = "";
-    restructureMediaList();
+    calculateListSliderHeight();
 }
 
 /** 搜索此列表 **/
@@ -739,8 +764,7 @@ function removeSingleMedia(ele){
     let oldHeight = mediaSingleContainer.offsetHeight;
     //DOM中移除该节点元素
     ele.parentNode.removeChild(ele);
-    //重构界面
-    restructureMediaList();
+    calculateListSliderHeight();
     let distance = oldHeight - mediaSingleContainer.offsetHeight;
     let current = parseInt(mediaSingleSlider.style.marginTop);
     //有明显变短且位移为负数则自动调整位移
@@ -778,9 +802,7 @@ function dropMediaNode(ele) {
         setting.get(getChosePlayListIndex()).swap(parseInt(oldIndex) - 1, parseInt(newIndex) - 1);
         STORE.get().setSetting(setting);
         //交换DOM节点
-        //oldClone.children[0].innerHTML = ele.children[0].innerHTML;
         mediaSingleSlider.replaceChild(decorateSingleMediaNode(oldClone), ele);
-        //oldClone.children[0].innerHTML = index;
         mediaSingleSlider.replaceChild(decorateSingleMediaNode(newClone), droppedMediaNode);
     }
     return false;
@@ -788,34 +810,19 @@ function dropMediaNode(ele) {
 
 /* ----------- 添加新内容区域 ----------- */
 
-/** 重构媒体列表区域显示, 增加远程媒体/本地媒体/本地文件夹三个图标 **/
+/** 重新计算播放列表的最大高度 **/
 let totalMediaSliderHeight = 0;
-function restructureMediaList(){
-    let exist = document.getElementById(CREATE_AREA_ID);
-    if(exist){
-        exist.parentNode.removeChild(exist);
-    }
-    let maskId = uuid(10);
-    let outer = document.createElement("div");
-    let file = document.createElement("div");
-    let directory = document.createElement("div");
-    let server = document.createElement("div");
-    outer.id = CREATE_AREA_ID;
-    outer.classList.add(HIGH_OPACITY_CLASS);
-    file.title = "添加本地媒体";
-    file.onclick = function (){showInput("请输入本地文件夹前缀", function (val, event){openLocalMediaFile(false, val, event, maskId)}, function (){hideInput(maskId)}, maskId)};
-    directory.title = "添加本地文件夹";
-    directory.onclick = function (){showInput("请输入本地文件夹前缀", function (val, event){openLocalMediaFile(true, val, event, maskId)}, function (){hideInput(maskId)}, maskId)};
-    server.title = "添加远程媒体";
-    server.onclick = function (){showInput("请输入远程媒体全路径", function (val, event){openRemoteMediaFile(val, event, maskId)}, function (){hideInput(maskId)}, maskId)};
-    outer.appendChild(server);
-    outer.appendChild(file);
-    outer.appendChild(directory);
-    mediaSingleSlider.appendChild(outer);
+function calculateListSliderHeight(){
     totalMediaSliderHeight = 0;
     for (let i = 0; i < mediaSingleSlider.children.length; i++) {
         totalMediaSliderHeight += mediaSingleSlider.children[i].offsetHeight;
     }
+    let max = setting.getCurrentPlayList().listHeight;
+    mediaSingleContainer.style.maxHeight = max + "px";
+    let height = mediaSingleContainer.offsetHeight < max ? max : mediaSingleContainer.offsetHeight;
+    height = height > totalMediaSliderHeight ? totalMediaSliderHeight : height;
+    mediaSingleContainer.style.height = height + "px";
+    console.log(max);
 }
 
 /** 打开远程媒体文件 **/
@@ -853,15 +860,9 @@ function openLocalMediaFile(isDirectory, prefix, event, maskId){
     if (event.keyCode === 13) {
         showMask(maskId);
         prefix = prefix ? (prefix.endsWith("/") ? prefix : prefix + "/") : "/";
-        let picker = document.createElement("input");
-        picker.type = "file";
-        picker.style.display = "none";
+        let picker = createArea.children[3];
         picker.webkitdirectory = isDirectory;
-        picker.multiple = true;
-        //需要更多类型可继续补充
-        picker.accept = "video/*,audio/*,.rmvb,.flv,.ape";
         picker.onchange = function (event){pickLocalMediaFile(event, prefix, maskId)};
-        document.getElementById(CREATE_AREA_ID).appendChild(picker);
         picker.click();
     }
 }
@@ -937,9 +938,6 @@ function loadConfig(config){
         setPlaySpeed(setting.speed);
         //设置默认的播放顺序
         setPlayOrder(setting.order);
-        restructureMediaList();
-        //选中初始化的歌单
-        PlayerListWrapper.children[setting.currentListIndex].click();
         //如果当前在播放则停止
         if (!playResource.paused && !playResource.ended){
             playSwitch.click();
@@ -948,6 +946,8 @@ function loadConfig(config){
         loadCurrentMedia();
         //重新载入播放列表展示
         reloadPlayListNodes();
+        //选中初始化的歌单
+        PlayerListWrapper.children[setting.currentListIndex].click();
         //设置主题色
         changeColor(setting.color);
         //选中初始化的媒体
@@ -982,32 +982,29 @@ addHandler(playerOuterSwitch, "click", function (){
         containerSwitchSign = false;
     }
 });
+
 /** 绑定最外层容器的拖动按钮 **/
-addHandler(playerLocation, "mousedown", function (ev){
-    fc.classList.add(UNSELECTABLE_CLASS);
-    let disX = ev.clientX - fc.offsetLeft;
-    let disY = ev.clientY - fc.offsetTop;
-    document.onmousemove = function (eve) {
-        let x = eve.clientX - disX;
-        x = x < 0 ? 0 : x;
-        let maxX = document.documentElement.clientWidth - fc.offsetWidth;
-        x = maxX > 0 && x > maxX ? maxX : x;
-        x = maxX <= 0 ? 0 : x;
-        fc.style.left = x + "px";
-        let y = eve.clientY - disY;
-        y = y < 0 ? 0 : y;
-        let maxY = document.documentElement.clientHeight - fc.offsetHeight;
-        y = maxY > 0 && y > maxY ? maxY : y;
-        y = maxY <= 0 ? 0 : y;
-        fc.style.top = y + "px";
-        setting.distance = y;
-    };
-    document.onmouseout = document.onmouseup = function () {
-        STORE.get().setSetting(setting);
-        fc.classList.remove(UNSELECTABLE_CLASS);
-        document.onmousemove = document.onmouseout = document.onmouseup = null;
-    };
-    return false;
+bindDrag(playerLocation, function (startEve) {
+    let result = [];
+    result.push(startEve.clientX - fc.offsetLeft);
+    result.push(startEve.clientY - fc.offsetTop);
+    return result;
+}, function (processEve, params) {
+    let x = processEve.clientX - params[0];
+    x = x < 0 ? 0 : x;
+    let maxX = document.documentElement.clientWidth - fc.offsetWidth;
+    x = maxX > 0 && x > maxX ? maxX : x;
+    x = maxX <= 0 ? 0 : x;
+    let y = processEve.clientY - params[1];
+    y = y < 0 ? 0 : y;
+    let maxY = document.documentElement.clientHeight - fc.offsetHeight;
+    y = maxY > 0 && y > maxY ? maxY : y;
+    y = maxY <= 0 ? 0 : y;
+    fc.style.left = x + "px";
+    fc.style.top = y + "px";
+    setting.distance = y;
+}, function (){
+    STORE.get().setSetting(setting);
 });
 
 /** 绑定播放单的左右拖动效果 **/
@@ -1070,30 +1067,34 @@ function resetMaxMarginLeft(ele, distance, max){
 
 /** 绑定媒体列表页的滚轮监听 **/
 let lastScrollTime = 0, continuousScrollTimes = 0;
-addHandler(mediaSingleSlider, "wheel", function (event){
+addHandler(mediaSingleContainer, "wheel", function (event){
     let now = window.performance.now();
     if(now - lastScrollTime < 400){
         continuousScrollTimes ++;
     }else continuousScrollTimes = 0;
     lastScrollTime = now;
     //step为每次滚动后页面移动的距离，基数为24，连续滚动后的每次滚动都会使此值增长，连续滚动的次数越多，增长的速度也更快;
-    let step = 24 * ~~(Math.pow(1.2,(continuousScrollTimes + 1) / 3));
-    let min = mediaSingleContainer.offsetHeight - totalMediaSliderHeight;
+    let step = 12 * ~~(Math.pow(1.1,continuousScrollTimes / 3 + 10));
+    let max = totalMediaSliderHeight - mediaSingleContainer.offsetHeight;
     let current = mediaSingleSlider.style.marginTop;
-    current = "" === current ? 0 : parseInt(current);
+    current = "" === current ? 0 : -parseInt(current);
     // Win平台网页滚动与鼠标滚动方向相反，Mac相同
     let direction = getScrollDirection(event);
     direction = IS_IOS ? direction : !direction;
-    current += (direction ? -1 : 1) * step;
-    current = current > min ? current : min;
-    current = current < 0 ? current : 0;
-    mediaSingleSlider.style.marginTop = current + "px";
+    current -= (direction ? -1 : 1) * step;
+    current = current > max ? max : current;
+    current = current < 0 ? 0 : current;
+    mediaSingleSlider.style.marginTop = -current + "px";
 });
-
 /** 绑定媒体封面图片触发动作，交由隐藏的文件上传input实际操作 **/
 addHandler(playDisplay, "click", function (){playDisplay.children[2].click()});
-/** 绑定音量进度条 **/
+/** 绑定音量进度条点击事件 **/
 addHandler(soundController, "click", function (event){
+    let width = event.pageX - soundController.getBoundingClientRect().left;
+    changeSound(width / soundController.offsetWidth);
+});
+/** 绑定音量进度条拖动事件 **/
+bindDrag(soundController.children[1], null, function (event){
     let width = event.pageX - soundController.getBoundingClientRect().left;
     changeSound(width / soundController.offsetWidth);
 });
@@ -1134,9 +1135,13 @@ addHandler(playSwitch, "click", function (){
         currentImgDegree = parseInt(currentMediaImg.style.transform.replace(/[^0-9]/ig,""));
     }
 });
-/** 绑定播放进度条 **/
+/** 绑定播放进度条点击 **/
 addHandler(processController, "click", function (event){
     resetProcess((event.pageX - processController.getBoundingClientRect().left) / processController.offsetWidth, true);
+});
+/** 绑定播放进度条拖动 **/
+bindDrag(processController.children[1], null, function (ev) {
+    resetProcess((ev.pageX - processController.getBoundingClientRect().left) / processController.offsetWidth, true);
 });
 /** 绑定播放界面的播放顺序切换 **/
 addHandler(playOrder, "click", function (){
@@ -1156,6 +1161,36 @@ addHandler(playerStoreSwitch, "click", function (){
     STORE.get().setSetting(setting);
     displayToggle(playerStoreOuter);
     this.title = setting.stretch ? "隐藏播放列表" : "展开播放列表";
+});
+/** 绑定播放列表的重置高度功能 **/
+bindDrag(createArea, function (oldEve){
+    let result = [];
+    result.push(oldEve.clientY);
+    result.push(mediaSingleContainer.offsetHeight);
+    return result;
+}, function (ev, params) {
+    let target = ev.clientY - params[0] + params[1];
+    target = target < 0 ? 0 : target;
+    setting.getCurrentPlayList().listHeight = target = target > totalMediaSliderHeight ? totalMediaSliderHeight : target;
+    mediaSingleContainer.style.height = mediaSingleContainer.style.maxHeight = target + "px";
+    let margin = mediaSingleSlider.style.marginTop;
+    margin = "" === margin ? 0 : -parseInt(margin);
+    if((margin + target) > totalMediaSliderHeight){
+        mediaSingleSlider.style.marginTop = (target - totalMediaSliderHeight) + "px";
+    }
+}, function (){
+    STORE.get().setSetting(setting);
+});
+/** 绑定添加界面的三个按钮点击事件 **/
+let initMaskId = uuid(10);
+addHandler(createArea.children[0], "click", function (){
+    showInput("请输入远程媒体全路径", function (val, event){openRemoteMediaFile(val, event, initMaskId)}, function (){hideInput(initMaskId)}, initMaskId);
+});
+addHandler(createArea.children[1], "click", function (){
+    showInput("请输入本地文件夹前缀", function (val, event){openLocalMediaFile(false, val, event, initMaskId)}, function (){hideInput(initMaskId)}, initMaskId);
+});
+addHandler(createArea.children[2], "click", function (){
+    showInput("请输入本地文件夹前缀", function (val, event){openLocalMediaFile(true, val, event, initMaskId)}, function (){hideInput(initMaskId)}, initMaskId);
 });
 
 /* --------------------- 渲染初始值 ------------------------ */
