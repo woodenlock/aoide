@@ -350,33 +350,36 @@ html, body, header, nav, footer, div, ul, ol, li, p, form, input, a, span, em, i
     margin: 2px 5px 2px 4px;
 }
 /*歌单选项页功能菜单*/
-#player_group_search, #player_group_create, #player_group_remove, #player_group_clear, #player_group_rename,#player_group_add {
+#player_group_search, #player_group_move, #player_group_create, #player_group_remove, #player_group_clear, #player_group_rename,#player_group_add {
     height: 20px;
     cursor: pointer;
     flex-shrink: 0;
     background-color: #5c4169;
 }
-#player_group_search, #player_group_create, #player_group_remove, #player_group_rename, #player_group_add, #player_group_clear {
-    width: 24px;
+#player_group_search, #player_group_move, #player_group_create, #player_group_remove, #player_group_rename, #player_group_add, #player_group_clear {
+    width: 22px;
 }
 #player_group_search {
     margin-left: auto;
-    background: url(../images/search.svg) no-repeat 4px;
+    background: url(../images/search.svg) no-repeat 3px;
+}
+#player_group_move {
+    background: url(../images/leftForward.svg) no-repeat 3px;
 }
 #player_group_create {
-    background: url(../images/create.svg) no-repeat 4px;
+    background: url(../images/create.svg) no-repeat 3px;
 }
 #player_group_clear {
-    background: url(../images/clear.svg) no-repeat 4px;
+    background: url(../images/clear.svg) no-repeat 3px;
 }
 #player_group_rename {
-    background: url(../images/rename.svg) no-repeat 4px;
+    background: url(../images/rename.svg) no-repeat 3px;
 }
 #player_group_add {
-    background: url(../images/sound.svg) no-repeat 4px;
+    background: url(../images/sound.svg) no-repeat 3px;
 }
 #player_group_remove {
-    background: url(../images/remove.svg) no-repeat 4px;
+    background: url(../images/remove.svg) no-repeat 3px;
 }
 #player_store_hr {
     margin: auto;
@@ -449,7 +452,7 @@ html, body, header, nav, footer, div, ul, ol, li, p, form, input, a, span, em, i
     height: 24px;
     line-height: 24px;
 }
-.player_list_single_star, .player_list_single_add, .player_list_single_remove {
+.player_list_single_star, .player_list_single_rename, .player_list_single_remove {
     width: 24px;
     cursor: pointer;
     flex-shrink: 0;
@@ -476,8 +479,8 @@ html, body, header, nav, footer, div, ul, ol, li, p, form, input, a, span, em, i
 .player_list_single_star_down {
     background: url(../images/star_grey.svg) no-repeat 8px;
 }
-.player_list_single_add {
-    background: url(../images/add.svg) no-repeat 8px;
+.player_list_single_rename {
+    background: url(../images/rename.svg) no-repeat 8px;
 }
 .player_list_single_remove {
     background: url(../images/remove.svg) no-repeat 8px;

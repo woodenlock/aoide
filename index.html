@@ -70,10 +70,11 @@
         <!--播放单列表-->
         <div id="player_group_outer">
             <div id="player_group_wrapper">
-                <div id="player_group_default" class="player_group_single" onclick='choosePlayList(this);'>正在播放</div>
+                <div id="player_group_default" class="player_group_single" onclick='choosePlayList(this);' ondrop="joinPlayList(this);" ondragover="event.preventDefault();">正在播放</div>
             </div>
             <div id="player_group_search" class="high_opacity" title="搜索此列表" onclick="searchPlayList();"></div>
             <div id="player_group_add" class="high_opacity" title="播放此列表" onclick="appendPlayList();"></div>
+            <div id="player_group_move" class="high_opacity toggle_reverse" title="右移此列表" onclick="movePlayList();"></div>
             <div id="player_group_create" class="high_opacity" title="新建列表" onclick="createPlayList();"></div>
             <div id="player_group_rename" class="high_opacity" title="重命名列表" onclick="renamePlayListPrepare();"></div>
             <div id="player_group_clear" class="high_opacity" title="清空列表" onclick="clearPlayList();"></div>

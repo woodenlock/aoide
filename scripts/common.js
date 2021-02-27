@@ -101,6 +101,11 @@ function toggleClass(element, clazz){
     }
 }
 
+/** 去除字符串前后空白 **/
+function trimString(source){
+    return typeof source === "string" ? source.replace(/(^\s*)|(\s*$)/g, "") : null;
+}
+
 /** 显示/隐藏元素 **/
 function displayToggle(element){
     toggleClass(element, HIDDEN_CLASS);

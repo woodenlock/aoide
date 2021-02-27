@@ -238,8 +238,8 @@ let Setting = function (soundUp, soundPercent, order, speed, currentMediaIndex, 
     this.soundPercent = (typeof soundPercent === "number") ? soundPercent : 0.8; //音量(0~1)，默认80%
     this.order = (typeof order === "number") ? order : 0; //播放顺序，默认正序循环
     this.speed = (typeof speed === "number") ? speed : 0; //播放速度，默认常速播放
-    this.currentMediaIndex = (typeof currentMediaIndex === "number") ? currentMediaIndex : 0; //当前媒体序号，默认为0
-    this.currentListIndex = (typeof currentListIndex === "number") ? currentListIndex : 0; //当前列表序号，默认为0
+    this.currentMediaIndex = (typeof currentMediaIndex === "number") ? currentMediaIndex : 0; //当前播放的媒体序号，默认为0
+    this.currentListIndex = (typeof currentListIndex === "number") ? currentListIndex : 0; //当前展示的列表序号，默认为0
     this.appear = (typeof appear === "boolean") ? appear : true; //当前播放器是否展示，默认展示
     this.distance = (typeof distance === "number") ? distance : 50; //当前播放器距浏览器顶端的距离（px），默认50px
     this.stretch = (typeof stretch === "boolean") ? stretch : true; //当前播放列表是否伸展开来，默认展开
@@ -280,12 +280,21 @@ let Setting = function (soundUp, soundPercent, order, speed, currentMediaIndex, 
     this.size = function (){
         return this.lists.length;
     }
+    this.moveRight = function (index) {
+        if(typeof index === "number" && index >= 0 && index < this.size() - 1){
+            let left = this.lists[index];
+            this.lists[index] = this.lists[index + 1];
+            this.lists[index + 1] = left;
+            this.lists[index].index = index;
+            this.lists[index + 1].index = index + 1;
+        }
+    }
     this.getCurrentPlayList = function (){
         return this.get(this.currentListIndex);
     }
-    this.getCurrentMedia = function (){
-        let pl = this.getCurrentPlayList();
-        return pl ? pl.get(this.currentMediaIndex) : null;
+    //获取正在播放的媒体（当前为第一个列表）
+    this.getPlayingMedia = function (){
+        return this.get(0).get(this.currentMediaIndex);
     }
 }
 
