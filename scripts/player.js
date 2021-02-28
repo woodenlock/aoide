@@ -257,11 +257,18 @@ function switchResources(forward){
     let order = ORDER_MAP.get(setting.order);
     let media = order.get(setting.currentMediaIndex, list, forward);
     if(media){
+        let stopped = playResource.paused || playResource.ended;
         setting.currentMediaIndex = media.index;
         STORE.get().setSetting(setting);
+        //如果是正在播放状态则在切换资源前后各点击一次以保持状态一致
+        if(!stopped){
+            playSwitch.click();
+        }
         loadCurrentMedia();
+        if(!stopped){
+            playSwitch.click();
+        }
     }
-    playSwitch.click();
 }
 
 /** 静音/取消 **/

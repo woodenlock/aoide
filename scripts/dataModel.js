@@ -184,16 +184,25 @@ function orderByRandom(current, list) {
 }
 //加权随机获取
 function orderByBalance(current,list) {
-    let ran = 0;
+    let index = 0;
     if(list && list.size() > 1){
-        let seed = Math.round(Math.random() * 99);
-        let star = ~~(seed / 3) !== 0;
-        let max = list.size() - 1;
+        let max = 0;
+        for (let i = 0; i < list.size(); i++) {
+            max += list.get(i).star ? 2 : 1;
+        }
+        let ran = 0;
         do{
             ran = Math.round(Math.random() * max);
-        }while (ran === current || list.get(ran).star !== star);
+            index = 0;
+            for (;index < list.size(); index++) {
+                ran -= list.get(index).star ? 2 : 1;
+                if(ran < 0 || index === list.size() - 1){
+                    break;
+                }
+            }
+        }while (index === current);
     }
-    return ran;
+    return index;
 }
 
 //播放顺序集合，暂时只支持这几种
