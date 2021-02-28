@@ -406,6 +406,7 @@ html, body, header, nav, footer, div, ul, ol, li, p, form, input, a, span, em, i
     height: 20px;
     line-height: 20px;
     padding: 0 4px;
+    border-left: solid 1px #888;
     cursor: pointer;
     display: inline-block;
     opacity: 0.70;

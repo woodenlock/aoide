@@ -1,3 +1,5 @@
+/** 当前版本号 **/
+const CURRENT_VERSION = 1.0001;
 //黑盒任务对象
 let Gear = function (written, value) {
     return {
@@ -233,7 +235,7 @@ COLOR_MAP.set(5, new Color(5, "靛青", "4B0082"));
 COLOR_MAP.set(6, new Color(6, "紫色", "800080"));
 
 //个人设置
-let Setting = function (soundUp, soundPercent, order, speed, currentMediaIndex, currentListIndex, appear, distance, stretch, color, mode, extra, lists) {
+let Setting = function (soundUp, soundPercent, order, speed, currentMediaIndex, currentListIndex, appear, distance, stretch, color, mode, version, extra, lists) {
     this.soundUp = (typeof soundUp === "boolean") ? soundUp : true; //声音是否打开，默认打开
     this.soundPercent = (typeof soundPercent === "number") ? soundPercent : 0.8; //音量(0~1)，默认80%
     this.order = (typeof order === "number") ? order : 0; //播放顺序，默认正序循环
@@ -245,6 +247,7 @@ let Setting = function (soundUp, soundPercent, order, speed, currentMediaIndex, 
     this.stretch = (typeof stretch === "boolean") ? stretch : true; //当前播放列表是否伸展开来，默认展开
     this.color = (typeof color === "number") ? color : 0; //颜色值，默认红色
     this.mode = (typeof mode === "number") ? mode : 0; //存储模式值，默认本地存储
+    this.version = (typeof version === "number") ? version : 0; //版本号
     this.extra = extra; //额外信息存储，预留
     this.lists = []; //媒体列表集合对象
     if(lists && lists.length){
@@ -303,7 +306,7 @@ function parseSettingFromJson(json){
     let result = null;
     if(json && json !== "null" && json !== "undefined"){
         json = JSON.parse(json);
-        result = new Setting(json.soundUp, json.soundPercent, json.order, json.speed, json.currentMediaIndex, json.currentListIndex, json.appear, json.distance, json.stretch, json.color, json.mode, json.extra);
+        result = new Setting(json.soundUp, json.soundPercent, json.order, json.speed, json.currentMediaIndex, json.currentListIndex, json.appear, json.distance, json.stretch, json.color, json.mode, json.version, json.extra);
         let pls = json.lists;
         if(pls && pls.length){
             let pl, medias, media;

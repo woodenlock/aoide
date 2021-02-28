@@ -39,7 +39,7 @@ const IS_IOS = !!navigator.userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/);
 /** 全局使用的配置，默认先从本地缓存中读取，没有再实例化一个空的 **/
 let setting = STORE.get().getSetting();
 if(!setting){
-    setting = new Setting(null, null, null, null, null, null, null, null, null, null, null, null, [new PlayerList("正在播放",null, [])]);
+    setting = new Setting(null, null, null, null, null, null, null, null, null, null, null, CURRENT_VERSION, null, [new PlayerList("正在播放",null, [])]);
     //TODO 示例数据，请删除
     setting.get(0).add(new Media(null, "Libertango - Yo-Yo Ma",187, true,
         "http://music.163.com/song/media/outer/url?id=1699535.mp3", "http://p2.music.126.net/DArW5ONJzLHd4JKgIl7yzA==/705886465073370.jpg"));
@@ -1101,15 +1101,14 @@ addHandler(PlayerListWrapper, "mousedown", function (e){
             }
         }
         document.onmouseout = document.onmouseup = function (ev){
+            let continuance = window.performance.now() - thisTime;
             if(lastLocation !== start){
-                lastTime = thisTime;
-                thisTime = window.performance.now();
                 released = false;
-                let speed = (ev.clientX - lastLocation) / (thisTime - lastTime) / 2;
-                //超过边界时将会惯性减速运动，运动间隔20ms，共运动25次，共计500ms
+                let speed = (ev.clientX - lastLocation) / continuance / 2;
+                //超过边界时将会惯性减速运动，运动间隔20ms，共运动10次，共计200ms
                 let step = 20, times = 0;
                 let inter = setInterval(function (){
-                    if(times ++ < 25){
+                    if(times ++ < 10){
                         resetMaxMarginLeft(dpl, step * speed, max);
                         speed = speed * 0.9;
                     }else {
